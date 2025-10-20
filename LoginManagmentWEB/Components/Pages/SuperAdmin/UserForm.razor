@@ -1,0 +1,130 @@
+﻿@page "/superadmin/users/create"
+@page "/superadmin/users/edit/{Id:int}"
+@using LoginManagmentWEB.Models
+@using LoginManagmentWEB.Services
+@inject UserService UserService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<h3>@(Id == 0 ? "Crear Usuario" : "Editar Usuario")</h3>
+
+<EditForm Model="@formModel" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Username</label>
+        <InputText class="form-control" @bind-Value="formModel.Username" />
+        <ValidationMessage For="@(() => formModel.Username)" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <InputText class="form-control" @bind-Value="formModel.Email" type="email" />
+        <ValidationMessage For="@(() => formModel.Email)" />
+    </div>
+
+    @if (Id == 0)
+    {
+        <div class="mb-3">
+            <label class="form-label">Password</label>
+            <InputText class="form-control" @bind-Value="formModel.Password" type="password" />
+            <ValidationMessage For="@(() => formModel.Password)" />
+        </div>
+    }
+
+    <div class="mb-3">
+        <label class="form-label">Rol</label>
+        <InputSelect class="form-select" @bind-Value="formModel.Role">
+            <option value="">-- Select role --</option>
+            <option value="Admin">Admin</option>
+            <option value="User">User</option>
+        </InputSelect>
+        <ValidationMessage For="@(() => formModel.Role)" />
+    </div>
+
+    <div class="form-check mb-3">
+        <InputCheckbox class="form-check-input" @bind-Value="formModel.IsActive" />
+        <label class="form-check-label">Is Active</label>
+    </div>
+
+    <div class="mt-3">
+        <button class="btn btn-primary me-2" type="submit">Guardar</button>
+        <button class="btn btn-secondary" @onclick="Cancel">Cancelar</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(operationError))
+    {
+        <div class="text-danger mt-2">@operationError</div>
+    }
+</EditForm>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    // Form model for create/edit
+    private CreateUserRequest formModel = new CreateUserRequest();
+    private string operationError = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != 0)
+        {
+            var existing = await UserService.GetByIdAsync(Id);
+            if (existing is not null)
+            {
+                // Map existing user to formModel (keep Password empty)
+                formModel = new CreateUserRequest
+                {
+                    Username = existing.Username,
+                    Email = existing.Email,
+                    Role = existing.Role,
+                    IsActive = existing.IsActive
+                };
+            }
+            else
+            {
+                operationError = "Usuario no encontrado.";
+            }
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        operationError = string.Empty;
+
+        bool success;
+        if (Id == 0)
+        {
+            // Create: formModel.Password must be set (CreateUserRequest enforces via DataAnnotations)
+            success = await UserService.CreateAsync(formModel);
+        }
+        else
+        {
+            // Update: send only fields admin can touch
+            var update = new UpdateUserRequest
+            {
+                Email = string.IsNullOrWhiteSpace(formModel.Email) ? null : formModel.Email,
+                Role = string.IsNullOrWhiteSpace(formModel.Role) ? null : formModel.Role,
+                IsActive = formModel.IsActive
+            };
+
+            success = await UserService.UpdateAsync(Id, update);
+        }
+
+        if (success)
+        {
+            Nav.NavigateTo("/superadmin/users");
+        }
+        else
+        {
+            operationError = "Operation failed. Check server logs or network.";
+            await JS.InvokeVoidAsync("alert", operationError);
+        }
+    }
+
+    private void Cancel()
+    {
+        Nav.NavigateTo("/superadmin/users");
+    }
+}

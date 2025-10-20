@@ -1,0 +1,108 @@
+﻿@page "/login"
+@using LoginManagmentWEB.Models
+@using LoginManagmentWEB.Services
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject AuthService AuthService
+@inject IJSRuntime JS
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h2>Ingresar</h2>
+            <p>Ingresa tus credenciales</p>
+        </div>
+
+        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin" OnInvalidSubmit="HandleInvalidSubmit" class="login-form" id="loginForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label for="usernameOrEmail" class="form-label">Username or Email</label>
+                <div class="input-wrapper">
+                    <InputText id="usernameOrEmail" name="usernameOrEmail" autocomplete="username"
+                               class="form-control"
+                               @bind-Value="loginModel.UsernameOrEmail" />
+                </div>
+                <ValidationMessage For="@(() => loginModel.UsernameOrEmail)" />
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Contraseña</label>
+                <div class="input-wrapper password-wrapper">
+                    <InputText id="password" name="password" type="@passwordInputType"
+                               autocomplete="current-password"
+                               class="form-control"
+                               @bind-Value="loginModel.Password" />
+                    <button type="button" class="password-toggle" @onclick="TogglePasswordVisibility" aria-label="Toggle password visibility">
+                        <span class="toggle-text">@toggleText</span>
+                    </button>
+                </div>
+                <ValidationMessage For="@(() => loginModel.Password)" />
+            </div>
+
+            <div class="text-danger">@errorMessage</div>
+
+            <button type="submit" class="login-btn">
+                <span class="btn-text">INGRESAR</span>
+            </button>
+        </EditForm>
+
+        <div class="divider"><span>O</span></div>
+
+        <div class="signup-link">
+            <span>¿No tienes cuenta? </span>
+            <a href="/register">Crear nueva</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginDto loginModel = new();
+    private string passwordInputType = "password";
+    private string toggleText = "Mostrar";
+    private string errorMessage = string.Empty;
+
+    private void TogglePasswordVisibility()
+    {
+        if (passwordInputType == "password")
+        {
+            passwordInputType = "text";
+            toggleText = "Ocultar";
+        }
+        else
+        {
+            passwordInputType = "password";
+            toggleText = "Mostrar";
+        }
+    }
+
+    private void HandleInvalidSubmit(EditContext ctx)
+    {
+        errorMessage = "Please fix validation errors.";
+    }
+
+    private async Task HandleLogin()
+    {
+        errorMessage = string.Empty;
+
+        var result = await AuthService.LoginAsync(loginModel);
+
+        if (result is not null && result.Success && result.Data is not null && !string.IsNullOrEmpty(result.Data.Token))
+        {
+            await JS.InvokeVoidAsync("localStorage.setItem", "token", result.Data.Token);
+            await JS.InvokeVoidAsync("localStorage.setItem", "role", result.Data.Role);
+
+            if (result.Data.Role == "Admin")
+                Navigation.NavigateTo("superadmin/users");
+            else
+                Navigation.NavigateTo("user/homeuser");
+        }
+        else
+        {
+            errorMessage = $"Login failed ({result?.StatusCode ?? 0}): {result?.Error ?? "No details returned"}";
+            Console.WriteLine(errorMessage);
+            await JS.InvokeVoidAsync("alert", errorMessage);
+        }
+    }
+}
