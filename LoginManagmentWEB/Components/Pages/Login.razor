@@ -5,6 +5,7 @@
 @inject NavigationManager Navigation
 @inject AuthService AuthService
 @inject IJSRuntime JS
+@inject HttpClient Http
 
 <div class="login-container">
     <div class="login-card">
@@ -18,7 +19,7 @@
             <ValidationSummary />
 
             <div class="form-group">
-                <label for="usernameOrEmail" class="form-label">Username or Email</label>
+                <label for="usernameOrEmail" class="form-label">Nombre de Usuario o Correo</label>
                 <div class="input-wrapper">
                     <InputText id="usernameOrEmail" name="usernameOrEmail" autocomplete="username"
                                class="form-control"
@@ -90,11 +91,15 @@
 
         if (result is not null && result.Success && result.Data is not null && !string.IsNullOrEmpty(result.Data.Token))
         {
+            // Store token and role in localStorage
             await JS.InvokeVoidAsync("localStorage.setItem", "token", result.Data.Token);
             await JS.InvokeVoidAsync("localStorage.setItem", "role", result.Data.Role);
 
+            // Send token to server-scoped TokenStore
+            await Http.PostAsJsonAsync("api/client/token", result.Data.Token);
+
             if (result.Data.Role == "Admin")
-                Navigation.NavigateTo("superadmin/users");
+                Navigation.NavigateTo("/admin/users");
             else
                 Navigation.NavigateTo("user/homeuser");
         }

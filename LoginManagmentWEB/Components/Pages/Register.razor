@@ -4,40 +4,71 @@
 @rendermode InteractiveServer
 @inject AuthService AuthService
 @inject NavigationManager Navigation
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h2>Registro</h2>
+            <p>Crea tu cuenta para comenzar</p>
+        </div>
 
-<h3>Register</h3>
+        <EditForm Model="@registerModel" OnValidSubmit="HandleRegister" class="login-form" id="registerForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
 
-<EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+            <div class="form-group">
+                <label for="username" class="form-label">Nombre de Usuario</label>
+                <div class="input-wrapper">
+                    <InputText id="username" name="username" autocomplete="username"
+                               class="form-control"
+                               placeholder="Username"
+                               @bind-Value="registerModel.Username" />
+                </div>
+                <ValidationMessage For="@(() => registerModel.Username)" />
+            </div>
 
-    <div>
-        <label>Username</label>
-        <InputText @bind-Value="registerModel.Username" placeholder="Username" />
-        <ValidationMessage For="@(() => registerModel.Username)" />
+            <div class="form-group">
+                <label for="email" class="form-label">Correo Electrónico</label>
+                <div class="input-wrapper">
+                    <InputText id="email" name="email" autocomplete="email"
+                               class="form-control"
+                               placeholder="Email"
+                               @bind-Value="registerModel.Email" />
+                </div>
+                <ValidationMessage For="@(() => registerModel.Email)" />
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Contraseña</label>
+                <div class="input-wrapper password-wrapper">
+                    <InputText id="password" name="password" type="password"
+                               autocomplete="new-password"
+                               class="form-control"
+                               placeholder="Password"
+                               @bind-Value="registerModel.Password" />
+                </div>
+                <ValidationMessage For="@(() => registerModel.Password)" />
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
+                <div class="input-wrapper password-wrapper">
+                    <InputText id="confirmPassword" name="confirmPassword" type="password"
+                               autocomplete="new-password"
+                               class="form-control"
+                               placeholder="Confirm Password"
+                               @bind-Value="registerModel.ConfirmPassword" />
+                </div>
+                <ValidationMessage For="@(() => registerModel.ConfirmPassword)" />
+            </div>
+
+            <div class="text-danger">@errorMessage</div>
+
+            <button type="submit" class="login-btn">
+                <span class="btn-text">REGISTRARSE</span>
+            </button>
+        </EditForm>
     </div>
-
-    <div>
-        <label>Email</label>
-        <InputText @bind-Value="registerModel.Email" placeholder="Email" />
-        <ValidationMessage For="@(() => registerModel.Email)" />
-    </div>
-
-    <div>
-        <label>Password</label>
-        <InputText @bind-Value="registerModel.Password" placeholder="Password" type="password" />
-        <ValidationMessage For="@(() => registerModel.Password)" />
-    </div>
-
-    <div>
-        <label>Confirm Password</label>
-        <InputText @bind-Value="registerModel.ConfirmPassword" placeholder="Confirm Password" type="password" />
-        <ValidationMessage For="@(() => registerModel.ConfirmPassword)" />
-    </div>
-
-    <div class="text-danger">@errorMessage</div>
-    <button type="submit">Register</button>
-</EditForm>
+</div>
 
 @code {
     private RegisterDto registerModel = new();
@@ -51,7 +82,7 @@
 
         if (result is not null && result.Success && result.Data is not null && !string.IsNullOrEmpty(result.Data.Token))
         {
-            Navigation.NavigateTo("/user/homeuser");
+            Navigation.NavigateTo("/login");
         }
         else
         {
