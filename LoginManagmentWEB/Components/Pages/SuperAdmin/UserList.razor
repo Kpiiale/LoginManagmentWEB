@@ -1,55 +1,98 @@
 ﻿@page "/admin/users"
+@rendermode InteractiveServer 
 @using LoginManagmentWEB.Models
 @using LoginManagmentWEB.Services
-@inject UserService UserService
+@using LoginManagmentWEB.Services.Auth
+@inject ITokenProvider TokenProvider
+@inject IHttpClientFactory ClientFactory
 @inject NavigationManager Nav
 
-<h3>Usuarios</h3>
+<div class="admin-page">
+    <div class="admin-card">
 
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="CreateUser">Crear Usuario</button>
+        <div class="mb-3">
+            <button class="admin-btn" @onclick="CreateUser">Crear Usuario</button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <p class="text-danger">@errorMessage</p>
+        }
+        else if (users is null)
+        {
+            <p>Cargando...</p>
+        }
+        else if (!users.Any())
+        {
+            <p>No hay usuarios registrados.</p>
+        }
+        else
+        {
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in users)
+                    {
+                        <tr>
+                            <td>@user.Email</td>
+                            <td>@user.Role</td>
+                            <td>
+                                <button class="admin-btn" @onclick="() => EditUser(user.Id)">Editar</button>
+                                <button class="admin-btn" @onclick="() => DeleteUser(user.Id)">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
 </div>
-
-@if (users is null)
-{
-    <p>Cargando...</p>
-}
-else if (!users.Any())
-{
-    <p>No hay usuarios registrados.</p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Email</th>
-                <th>Rol</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var user in users)
-            {
-                <tr>
-                    <td>@user.Email</td>
-                    <td>@user.Role</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning me-2" @onclick="() => EditUser(user.Id)">Editar</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteUser(user.Id)">Eliminar</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
 @code {
     private List<UserDto>? users;
+    private string errorMessage = string.Empty;
+    private bool _loaded = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        users = await UserService.GetAllAsync();
+        if (firstRender && !_loaded)
+        {
+            _loaded = true;
+
+            await TokenProvider.LoadTokenAsync();
+            var token = TokenProvider.Token;
+            Console.WriteLine($"Token recuperado en UserList: {token}");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                errorMessage = "No se encontró token de autenticación.";
+                StateHasChanged();
+                return;
+            }
+
+            var client = ClientFactory.CreateClient();
+            client.BaseAddress = new Uri("https://localhost:7162");
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var userService = new UserService(client);
+
+            try
+            {
+                users = await userService.GetAllAsync();
+            }
+            catch (HttpRequestException ex)
+            {
+                errorMessage = "No estás autorizada para ver esta sección.";
+                Console.WriteLine(ex.Message);
+            }
+
+            StateHasChanged();
+        }
     }
 
     private void CreateUser() =>

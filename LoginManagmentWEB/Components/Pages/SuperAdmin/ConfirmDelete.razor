@@ -1,5 +1,10 @@
 ﻿@page "/admin/users/delete/{Id:int}"
+@inject ITokenProvider TokenProvider
+@inject IHttpClientFactory ClientFactory
+@inject IJSRuntime JS
+@rendermode InteractiveServer 
 @using LoginManagmentWEB.Services
+@using LoginManagmentWEB.Services.Auth
 @inject UserService UserService
 @inject NavigationManager Nav
 
@@ -15,8 +20,30 @@
 
     private async Task DeleteUser()
     {
-        await UserService.DeleteAsync(Id);
-        Nav.NavigateTo("/admin/users");
+        await TokenProvider.LoadTokenAsync();
+        var token = TokenProvider.Token;
+
+        if (string.IsNullOrEmpty(token))
+        {
+            await JS.InvokeVoidAsync("alert", "No se encontró token de autenticación.");
+            return;
+        }
+
+        var client = ClientFactory.CreateClient();
+        client.BaseAddress = new Uri("https://localhost:7162");
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var userService = new UserService(client);
+        var success = await userService.DeleteAsync(Id);
+
+        if (success)
+        {
+            Nav.NavigateTo("/admin/users");
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", "No se pudo eliminar el usuario.");
+        }
     }
 
     private void Cancelar()

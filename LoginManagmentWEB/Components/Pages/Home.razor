@@ -1,7 +1,14 @@
 ﻿@page "/home"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="admin-page">
+    <div class="admin-card">
+        <h1 class="home-title">Hello, world!</h1>
+        <p class="home-subtitle">Welcome to your new app.</p>
 
-Welcome to your new app.
+        <Component />
+    </div>
+</div>

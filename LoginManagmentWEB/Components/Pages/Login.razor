@@ -1,11 +1,15 @@
 ﻿@page "/login"
 @using LoginManagmentWEB.Models
 @using LoginManagmentWEB.Services
+@using LoginManagmentWEB.Services.Auth
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
 @inject AuthService AuthService
-@inject IJSRuntime JS
 @inject HttpClient Http
+@inject JWTAuthStateProvider AuthProvider
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Navigation 
+@inject ITokenProvider TokenProvider 
 
 <div class="login-container">
     <div class="login-card">
@@ -91,23 +95,24 @@
 
         if (result is not null && result.Success && result.Data is not null && !string.IsNullOrEmpty(result.Data.Token))
         {
-            // Store token and role in localStorage
-            await JS.InvokeVoidAsync("localStorage.setItem", "token", result.Data.Token);
-            await JS.InvokeVoidAsync("localStorage.setItem", "role", result.Data.Role);
+            await TokenProvider.SetTokenAsync(result.Data.Token); 
 
-            // Send token to server-scoped TokenStore
-            await Http.PostAsJsonAsync("api/client/token", result.Data.Token);
+            await AuthProvider.MarkUserAsAuthenticated(result.Data.Token);
+            var client = HttpClientFactory.CreateClient("ApiClient");
+            await client.PostAsJsonAsync("api/client/token", result.Data.Token);
 
             if (result.Data.Role == "Admin")
                 Navigation.NavigateTo("/admin/users");
             else
-                Navigation.NavigateTo("user/homeuser");
+                Navigation.NavigateTo("/user/homeuser");
         }
         else
         {
             errorMessage = $"Login failed ({result?.StatusCode ?? 0}): {result?.Error ?? "No details returned"}";
             Console.WriteLine(errorMessage);
-            await JS.InvokeVoidAsync("alert", errorMessage);
         }
+    }
+
+
     }
 }

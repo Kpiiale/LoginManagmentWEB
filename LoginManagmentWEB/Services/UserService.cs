@@ -1,42 +1,39 @@
 ﻿using LoginManagmentWEB.Models;
-using Microsoft.JSInterop;
 
 namespace LoginManagmentWEB.Services
 {
     public class UserService
     {
         private readonly HttpClient _http;
-        private readonly IJSRuntime _js;
 
-        public UserService(HttpClient http, IJSRuntime js)
+        public UserService(HttpClient http)
         {
             _http = http;
-            _js = js;
         }
 
         public async Task<List<UserDto>> GetAllAsync()
         {
             try
             {
-                var users = await _js.InvokeAsync<List<UserDto>>("authFetch.getJson", "api/users");
-                return users ?? new List<UserDto>();
+                var response = await _http.GetFromJsonAsync<PagedUsersResponse>("api/users?page=1&pageSize=50");
+                Console.WriteLine($"[UserService] Recibidos {response?.Items.Count ?? 0} usuarios");
+                return response?.Items ?? new List<UserDto>();
             }
-            catch (JSException ex)
+            catch (Exception ex)
             {
-                Console.WriteLine($"GetAllAsync JS fetch error: {ex.Message}");
+                Console.WriteLine($"GetAllAsync error: {ex.Message}");
                 throw;
             }
         }
-
         public async Task<UserDto?> GetByIdAsync(int id)
         {
             try
             {
-                return await _js.InvokeAsync<UserDto?>("authFetch.getJson", $"api/users/{id}");
+                return await _http.GetFromJsonAsync<UserDto>($"api/users/{id}");
             }
-            catch (JSException ex)
+            catch (Exception ex)
             {
-                Console.WriteLine($"GetByIdAsync JS fetch error: {ex.Message}");
+                Console.WriteLine($"GetByIdAsync error: {ex.Message}");
                 throw;
             }
         }
@@ -45,12 +42,12 @@ namespace LoginManagmentWEB.Services
         {
             try
             {
-                await _js.InvokeVoidAsync("authFetch.postJson", "api/users", create);
-                return true;
+                var response = await _http.PostAsJsonAsync("api/users", create);
+                return response.IsSuccessStatusCode;
             }
-            catch (JSException ex)
+            catch (Exception ex)
             {
-                Console.WriteLine($"CreateAsync JS fetch error: {ex.Message}");
+                Console.WriteLine($"CreateAsync error: {ex.Message}");
                 return false;
             }
         }
@@ -59,12 +56,12 @@ namespace LoginManagmentWEB.Services
         {
             try
             {
-                await _js.InvokeVoidAsync("authFetch.putJson", $"api/users/{id}", update);
-                return true;
+                var response = await _http.PutAsJsonAsync($"api/users/{id}", update);
+                return response.IsSuccessStatusCode;
             }
-            catch (JSException ex)
+            catch (Exception ex)
             {
-                Console.WriteLine($"UpdateAsync JS fetch error: {ex.Message}");
+                Console.WriteLine($"UpdateAsync error: {ex.Message}");
                 return false;
             }
         }
@@ -73,14 +70,15 @@ namespace LoginManagmentWEB.Services
         {
             try
             {
-                await _js.InvokeVoidAsync("authFetch.deleteJson", $"api/users/{id}");
-                return true;
+                var response = await _http.DeleteAsync($"api/users/{id}");
+                return response.IsSuccessStatusCode;
             }
-            catch (JSException ex)
+            catch (Exception ex)
             {
-                Console.WriteLine($"DeleteAsync JS fetch error: {ex.Message}");
+                Console.WriteLine($"DeleteAsync error: {ex.Message}");
                 return false;
             }
         }
     }
 }
+

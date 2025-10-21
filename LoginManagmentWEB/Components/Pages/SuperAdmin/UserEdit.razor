@@ -1,5 +1,5 @@
-﻿@page "/admin/users/create"
-@rendermode InteractiveServer 
+﻿@page "/admin/users/edit/{Id:int}"
+@rendermode InteractiveServer
 @using LoginManagmentWEB.Models
 @using LoginManagmentWEB.Services
 @using LoginManagmentWEB.Services.Auth
@@ -9,7 +9,7 @@
 @inject ITokenProvider TokenProvider
 @inject IHttpClientFactory ClientFactory
 
-<h3>Crear Usuario</h3>
+<h3>Editar Usuario</h3>
 
 <EditForm Model="@formModel" OnValidSubmit="HandleSubmit" FormName="UserForm">
     <DataAnnotationsValidator />
@@ -17,20 +17,13 @@
 
     <div class="mb-3">
         <label class="form-label">Username</label>
-        <InputText class="form-control" @bind-Value="formModel.Username" />
-        <ValidationMessage For="@(() => formModel.Username)" />
+        <InputText class="form-control" @bind-Value="formModel.Username" disabled />
     </div>
 
     <div class="mb-3">
         <label class="form-label">Email</label>
         <InputText class="form-control" @bind-Value="formModel.Email" type="email" />
         <ValidationMessage For="@(() => formModel.Email)" />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Password</label>
-        <InputText class="form-control" @bind-Value="formModel.Password" type="password" />
-        <ValidationMessage For="@(() => formModel.Password)" />
     </div>
 
     <div class="mb-3">
@@ -60,33 +53,72 @@
 </EditForm>
 
 @code {
+    [Parameter] public int Id { get; set; }
+
     private CreateUserRequest formModel = new();
     private string operationError = string.Empty;
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await TokenProvider.LoadTokenAsync();
+            var token = TokenProvider.Token;
+
+            if (string.IsNullOrEmpty(token))
+            {
+                operationError = "No se encontró token de autenticación.";
+                StateHasChanged();
+                return;
+            }
+
+            var client = ClientFactory.CreateClient();
+            client.BaseAddress = new Uri("https://localhost:7162");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var userService = new UserService(client);
+            var existing = await userService.GetByIdAsync(Id);
+
+            if (existing is not null)
+            {
+                formModel = new CreateUserRequest
+                {
+                    Username = existing.Username,
+                    Email = existing.Email,
+                    Role = existing.Role,
+                    IsActive = existing.IsActive,
+                    Password = string.Empty
+                };
+            }
+            else
+            {
+                operationError = "Usuario no encontrado.";
+            }
+
+            StateHasChanged();
+        }
+    }
     private async Task HandleSubmit()
     {
-        await TokenProvider.LoadTokenAsync();
-        var token = TokenProvider.Token;
-
-        if (string.IsNullOrEmpty(token))
+        var update = new UpdateUserRequest
         {
-            operationError = "No se encontró token de autenticación.";
-            await JS.InvokeVoidAsync("alert", operationError);
-            return;
-        }
+            Email = string.IsNullOrWhiteSpace(formModel.Email) ? null : formModel.Email,
+            Role = string.IsNullOrWhiteSpace(formModel.Role) ? null : formModel.Role,
+            IsActive = formModel.IsActive
+        };
 
         var client = ClientFactory.CreateClient();
         client.BaseAddress = new Uri("https://localhost:7162");
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TokenProvider.Token);
 
         var userService = new UserService(client);
-        var success = await userService.CreateAsync(formModel);
+        var success = await userService.UpdateAsync(Id, update);
 
         if (success)
             Nav.NavigateTo("/admin/users");
         else
         {
-            operationError = "Error al crear usuario.";
+            operationError = "Error al actualizar usuario.";
             await JS.InvokeVoidAsync("alert", operationError);
         }
     }
