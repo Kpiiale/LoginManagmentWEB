@@ -1,15 +1,19 @@
 ﻿@page "/admin/users"
 @rendermode InteractiveServer 
 @using LoginManagmentWEB.Models
+@inject ProtectedSessionStorage Session
 @using LoginManagmentWEB.Services
 @using LoginManagmentWEB.Services.Auth
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject ITokenProvider TokenProvider
 @inject IHttpClientFactory ClientFactory
 @inject NavigationManager Nav
 
 <div class="admin-page">
     <div class="admin-card">
-
+        <div class="mb-3">
+            <button class="admin-btn logout-btn" @onclick="Logout">Cerrar sesión</button>
+        </div>
         <div class="mb-3">
             <button class="admin-btn" @onclick="CreateUser">Crear Usuario</button>
         </div>
@@ -94,6 +98,12 @@
             StateHasChanged();
         }
     }
+    private async Task Logout()
+    {
+        await Session.DeleteAsync("authToken");
+        Nav.NavigateTo("/login", forceLoad: true);
+    }
+
 
     private void CreateUser() =>
         Nav.NavigateTo("/admin/users/create");

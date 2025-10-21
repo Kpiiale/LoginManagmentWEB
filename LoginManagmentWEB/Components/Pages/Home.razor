@@ -1,14 +1,23 @@
-﻿@page "/home"
+﻿@page "/"
 @rendermode InteractiveServer
 @inject NavigationManager Nav
 
-<PageTitle>Home</PageTitle>
-
 <div class="admin-page">
     <div class="admin-card">
-        <h1 class="home-title">Hello, world!</h1>
-        <p class="home-subtitle">Welcome to your new app.</p>
+        <h3 class="home-title">Bienvenido</h3>
+        <p class="home-subtitle">UserManagment</p>
 
-        <Component />
+        <div class="form-options">
+            <button class="login-btn" @onclick="Loginbtn">
+                <span class="btn-text">Ingresar</span>
+            </button>
+        </div>
     </div>
 </div>
+
+@code {
+    private void Loginbtn()
+    {
+        Nav.NavigateTo("/login");
+    }
+}

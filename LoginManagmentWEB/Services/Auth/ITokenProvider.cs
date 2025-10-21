@@ -5,6 +5,8 @@
         string? Token { get; }
         Task LoadTokenAsync();
         Task SetTokenAsync(string token);
+
+
     }
 
 
