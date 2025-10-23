@@ -1,4 +1,24 @@
 ﻿@page "/unauthorized"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
 
-<h3 class="text-danger">Acceso no autorizado</h3>
-<p>No tienes permisos para ver esta sección.</p>  
+<div class="admin-page">
+    <div class="admin-card">
+        <h3 class="home-title text-danger">Acceso no autorizado</h3>
+        <p class="home-subtitle">No tienes permisos para ver esta sección.</p>
+
+        <div class="form-options">
+            <div class="mb-3">
+                <button class="admin-btn logout-btn" @onclick="Return">Regresar</button>
+            </div>
+        </div>
+    </div>
+</div>
+@code
+{
+    private async Task Return()
+    {
+        Nav.NavigateTo("/user/home", forceLoad: true);
+    }
+
+}
