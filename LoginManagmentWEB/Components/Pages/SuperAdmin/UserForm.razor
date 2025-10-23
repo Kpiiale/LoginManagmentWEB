@@ -100,9 +100,7 @@
 
         if (string.IsNullOrEmpty(token))
         {
-            operationError = "No se encontró token de autenticación.";
-            await JS.InvokeVoidAsync("alert", operationError);
-            return;
+            Nav.NavigateTo("/unauthorized");
         }
 
         var client = ClientFactory.CreateClient();

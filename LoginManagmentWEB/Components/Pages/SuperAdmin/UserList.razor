@@ -74,9 +74,7 @@
 
             if (string.IsNullOrEmpty(token))
             {
-                errorMessage = "No se encontró token de autenticación.";
-                StateHasChanged();
-                return;
+                Nav.NavigateTo("/unauthorized");
             }
 
             var client = ClientFactory.CreateClient();
@@ -92,7 +90,7 @@
             catch (HttpRequestException ex)
             {
                 errorMessage = "No estás autorizado para ver esta sección.";
-                Nav.NavigateTo("/Unauthorized", forceLoad: true);
+                Nav.NavigateTo("/unauthorized", forceLoad: true);
             }
 
             StateHasChanged();
