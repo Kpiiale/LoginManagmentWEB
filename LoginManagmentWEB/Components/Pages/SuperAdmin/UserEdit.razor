@@ -33,7 +33,7 @@
             <div class="form-group">
                 <label class="form-label">Contraseña</label>
                 <div class="input-wrapper">
-                    <InputText @bind-Value="formModel.Password" type="password" placeholder="Nueva contraseña (opcional)" />
+                    <InputText @bind-Value="formModel.Password" type="password" placeholder="Nueva contraseña" />
                 </div>
                 <div class="error-message show">
                     <ValidationMessage For="@(() => formModel.Password)" />
