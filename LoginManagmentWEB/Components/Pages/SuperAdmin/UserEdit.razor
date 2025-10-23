@@ -16,12 +16,9 @@
         <EditForm Model="@formModel" OnValidSubmit="HandleSubmit" FormName="UserForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
-
             <div class="form-group">
                 <label class="form-label">Username</label>
-                <div class="input-wrapper">
-                    <InputText @bind-Value="formModel.Username" disabled placeholder="Username" />
-                </div>
+                <h4 class="username-display">@formModel.Username</h4>
             </div>
 
             <div class="form-group">
@@ -157,4 +154,4 @@
     }
 
     private void Cancel() => Nav.NavigateTo("/admin/users");
-}
+} 

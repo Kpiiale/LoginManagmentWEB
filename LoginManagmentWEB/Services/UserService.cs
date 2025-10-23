@@ -61,7 +61,7 @@ namespace LoginManagmentWEB.Services
             try
             {
                 
-                var response = await _http.PutAsJsonAsync($"api/users/{id}", update);
+               var response = await _http.PatchAsJsonAsync($"api/users/{id}", update);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
