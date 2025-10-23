@@ -32,6 +32,7 @@ builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddScoped<AuthenticationStateProvider, JWTAuthStateProvider>();
 builder.Services.AddScoped<JWTAuthStateProvider>();
 builder.Services.AddScoped<ITokenProvider, TokenProvider>();
+builder.Services.AddScoped<UserService>(); 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddTransient<AuthHeaderHandler>();
 

@@ -33,7 +33,15 @@
                     <ValidationMessage For="@(() => formModel.Email)" />
                 </div>
             </div>
-
+            <div class="form-group">
+                <label class="form-label">Contraseña</label>
+                <div class="input-wrapper">
+                    <InputText @bind-Value="formModel.Password" type="password" placeholder="Nueva contraseña (opcional)" />
+                </div>
+                <div class="error-message show">
+                    <ValidationMessage For="@(() => formModel.Password)" />
+                </div>
+            </div>
             <div class="form-group">
                 <label class="form-label">Rol</label>
                 <div class="input-wrapper">
@@ -122,10 +130,13 @@
     }
     private async Task HandleSubmit()
     {
+        await TokenProvider.LoadTokenAsync();
+
         var update = new UpdateUserRequest
         {
             Email = string.IsNullOrWhiteSpace(formModel.Email) ? null : formModel.Email,
             Role = string.IsNullOrWhiteSpace(formModel.Role) ? null : formModel.Role,
+            UpdatedBy = TokenProvider.GetUsernameFromToken() ?? "autoupdate",
             IsActive = formModel.IsActive
         };
 

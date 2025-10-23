@@ -8,6 +8,8 @@
 @inject IJSRuntime JS
 @inject ITokenProvider TokenProvider
 @inject IHttpClientFactory ClientFactory
+@inject UserService userService
+
 
 <div class="admin-page">
     <div class="admin-card">
@@ -108,6 +110,7 @@
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var userService = new UserService(client);
+        formModel.CreatedBy = TokenProvider.GetUsernameFromToken() ?? "autocreado";
         var success = await userService.CreateAsync(formModel);
 
         if (success)

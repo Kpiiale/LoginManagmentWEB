@@ -4,6 +4,7 @@ namespace LoginManagmentWEB.Models
     {
         public string? Email { get; set; }
         public string? Role { get; set; }
+        public string? UpdatedBy { get; set; }
         public bool? IsActive { get; set; }
     }
 }

@@ -18,5 +18,8 @@ namespace LoginManagmentWEB.Models
         public string Role { get; set; } = "User";
 
         public bool IsActive { get; set; } = true;
+
+        public string CreatedBy { get; set; } = string.Empty;
+
     }
 }

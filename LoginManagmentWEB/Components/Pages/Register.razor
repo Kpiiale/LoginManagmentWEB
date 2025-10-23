@@ -1,6 +1,7 @@
 ﻿@page "/register"
 @using LoginManagmentWEB.Models
 @using LoginManagmentWEB.Services
+@using LoginManagmentWEB.Services.Auth
 @rendermode InteractiveServer
 @inject AuthService AuthService
 @inject NavigationManager Navigation
@@ -76,8 +77,7 @@
 
     private async Task HandleRegister()
     {
-        errorMessage = string.Empty;
-
+        registerModel.CreatedBy = "autocreado";
         var result = await AuthService.RegisterAsync(registerModel);
 
         if (result is not null && result.Success && result.Data is not null && !string.IsNullOrEmpty(result.Data.Token))

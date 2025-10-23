@@ -13,6 +13,7 @@ namespace LoginManagmentWEB.Services
         {
             try
             {
+                dto.CreatedBy = "autocreado";
                 var response = await _http.PostAsJsonAsync("api/auth/register", dto);
 
                 if (response.IsSuccessStatusCode)
@@ -54,7 +55,7 @@ namespace LoginManagmentWEB.Services
         {
             try
             {
-                // Log outgoing payload to help debugging
+              
                 try
                 {
                     var payload = JsonSerializer.Serialize(dto);

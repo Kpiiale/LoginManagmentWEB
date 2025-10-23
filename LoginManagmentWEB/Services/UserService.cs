@@ -1,14 +1,17 @@
 ﻿using LoginManagmentWEB.Models;
+using LoginManagmentWEB.Services.Auth;
 
 namespace LoginManagmentWEB.Services
 {
     public class UserService
     {
         private readonly HttpClient _http;
+        
 
         public UserService(HttpClient http)
         {
             _http = http;
+            
         }
 
         public async Task<List<UserDto>> GetAllAsync()
@@ -42,6 +45,7 @@ namespace LoginManagmentWEB.Services
         {
             try
             {
+                
                 var response = await _http.PostAsJsonAsync("api/users", create);
                 return response.IsSuccessStatusCode;
             }
@@ -56,6 +60,7 @@ namespace LoginManagmentWEB.Services
         {
             try
             {
+                
                 var response = await _http.PutAsJsonAsync($"api/users/{id}", update);
                 return response.IsSuccessStatusCode;
             }
