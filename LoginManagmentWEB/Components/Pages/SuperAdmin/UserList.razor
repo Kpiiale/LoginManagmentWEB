@@ -87,7 +87,7 @@
             {
                 users = await userService.GetAllAsync();
             }
-            catch (HttpRequestException ex)
+            catch (HttpRequestException )
             {
                 errorMessage = "No estás autorizado para ver esta sección.";
                 Nav.NavigateTo("/unauthorized", forceLoad: true);
