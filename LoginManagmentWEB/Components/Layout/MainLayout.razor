@@ -1,53 +1,19 @@
 ﻿@inherits LayoutComponentBase
-
-@inject ProtectedSessionStorage Session
-@using LoginManagmentWEB.Services
-@using LoginManagmentWEB.Services.Auth
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
-@inject ITokenProvider TokenProvider
-@inject IHttpClientFactory ClientFactory
+@inject ProtectedSessionStorage Session
 @inject NavigationManager Nav
 
 <div class="top-bar">
     <div class="left-section">
-        <a href="/" class="nav-icon">
-            <img src="icons/home.png" alt="Home" />
+        <a href="javascript:void(0)" class="nav-icon" @onclick="GoHome">
+            <img src="icons/home.png" alt="Home" class="icon" />
         </a>
-    </div>
-
-    <div class="right-section">
-        @if (!_loaded)
-        {
-            <span>Cargando...</span>
-        }
-        else if (!IsAuthenticated)
-        {
-            <a href="/login" class="nav-button">Ingresar</a>
-            <a href="/register" class="nav-button">Registrarse</a>
-        }
-        else
-        {
-            <div class="account-menu">
-                <button @onclick="ToggleMenu" class="account-button">
-                    <img src="icons/user.png" alt="Cuenta" />
-                    <span>@Username</span>
-                </button>
-
-                @if (ShowMenu)
-                {
-                    <div class="dropdown">
-                        <button @onclick="Logout">Cerrar sesión</button>
-                    </div>
-                }
-            </div>
-        }
     </div>
 </div>
 
-
-
-
-@Body
+<div class="main-content">
+    @Body
+</div>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
@@ -56,33 +22,13 @@
 </div>
 
 @code {
-     private bool IsAuthenticated = false;
-    private string Username = "";
-    private bool ShowMenu = false;
-    private bool _loaded = false;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task GoHome()
     {
-        if (firstRender)
-        {
-            await TokenProvider.LoadTokenAsync();
-            IsAuthenticated = !string.IsNullOrEmpty(TokenProvider.Token);
-            Username = TokenProvider.GetUsernameFromToken() ?? "Usuario";
-            _loaded = true;
-            StateHasChanged();
-        }
-    }
+        // Elimina el token guardado (igual que en tu Logout)
+        await Session.DeleteAsync("authToken");
 
-    private void ToggleMenu() => ShowMenu = !ShowMenu;
-
-    private async Task Logout()
-    {
-        await TokenProvider.SetTokenAsync(""); // Borra el token
-        IsAuthenticated = false;
-        Username = "";
-        ShowMenu = false;
+        // Redirige al home
         Nav.NavigateTo("/", forceLoad: true);
     }
-}
 }
 
