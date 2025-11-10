@@ -17,20 +17,27 @@ namespace LoginManagmentWEB.Services
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            var storedToken = await _sessionStorage.GetAsync<string>("authToken");
-            if (!storedToken.Success || string.IsNullOrEmpty(storedToken.Value))
-                return new AuthenticationState(_anonymous);
+            var anonymous = new ClaimsPrincipal(new ClaimsIdentity());
 
             try
             {
+       
+                if (!OperatingSystem.IsBrowser())
+                    return new AuthenticationState(anonymous);
+
+                var storedToken = await _sessionStorage.GetAsync<string>("authToken");
+
+                if (!storedToken.Success || string.IsNullOrEmpty(storedToken.Value))
+                    return new AuthenticationState(anonymous);
+
                 var claims = ParseClaimsFromJwt(storedToken.Value);
                 var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
                 return new AuthenticationState(user);
             }
             catch
             {
-                await _sessionStorage.DeleteAsync("authToken");
-                return new AuthenticationState(_anonymous);
+               
+                return new AuthenticationState(anonymous);
             }
         }
 

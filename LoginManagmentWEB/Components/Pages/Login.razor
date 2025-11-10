@@ -103,6 +103,8 @@
 
             if (result.Data.Role == "Admin")
                 Navigation.NavigateTo("/admin/users");
+            else if (result.Data.Role == "Company")
+                Navigation.NavigateTo("/admin/companies");
             else
                 Navigation.NavigateTo("/user/homeuser");
         }

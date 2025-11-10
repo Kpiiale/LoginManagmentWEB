@@ -1,0 +1,98 @@
+﻿@page "/admin/companies/create"
+@rendermode InteractiveServer
+@using LoginManagmentWEB.Models
+@using LoginManagmentWEB.Services
+@using LoginManagmentWEB.Services.Auth
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject ITokenProvider TokenProvider
+@inject IHttpClientFactory ClientFactory
+@inject AuthenticationStateProvider AuthProvider
+
+
+<div class="admin-page">
+    <div class="admin-card">
+        <h3 class="home-title">Crear Compañía</h3>
+
+        <EditForm Model="@formModel" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <InputText @bind-Value="formModel.Name" placeholder="Nombre de la compañía" />
+                <ValidationMessage For="@(() => formModel.Name)" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Descripción</label>
+                <InputText @bind-Value="formModel.Description" placeholder="Dirección" />
+                <ValidationMessage For="@(() => formModel.Description)" />
+            </div>
+
+            
+
+            <div class="form-options">
+                <button class="login-btn" type="submit">
+                    <span class="btn-text">Guardar</span>
+                </button>
+                <button class="social-btn" @onclick="Cancel">Cancelar</button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(operationError))
+            {
+                <div class="error-message show">@operationError</div>
+            }
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private CompanyDto formModel = new();
+    private string operationError = string.Empty;
+
+    private async Task HandleSubmit()
+    {
+        await TokenProvider.LoadTokenAsync();
+        var token = TokenProvider.Token;
+
+        if (string.IsNullOrEmpty(token))
+        {
+            Nav.NavigateTo("/unauthorized");
+            return;
+        }
+
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = user.FindFirst(c => c.Type == "nameid" || c.Type == "sub")?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            operationError = "No se pudo identificar al usuario autenticado.";
+            return;
+        }
+
+        formModel.CreatedBy = userId;
+
+        var client = ClientFactory.CreateClient();
+        client.BaseAddress = new Uri("https://localhost:7162");
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var companyService = new CompanyService(client);
+        var success = await companyService.CreateCompanyAsync(formModel);
+
+        if (success)
+            Nav.NavigateTo("/admin/companies");
+        else
+        {
+            operationError = "Error al crear la compañía.";
+            await JS.InvokeVoidAsync("alert", operationError);
+        }
+
+    }
+
+    private void Cancel() => Nav.NavigateTo("/admin/companies");
+}

@@ -3,6 +3,13 @@
 @inject ProtectedSessionStorage Session
 @inject NavigationManager Nav
 
+<head>
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="LoginManagmentWEB.styles.css" />
+</head>
+
+
+
 <div class="top-bar">
     <div class="left-section">
         <a href="javascript:void(0)" class="nav-icon" @onclick="GoHome">
@@ -24,10 +31,9 @@
 @code {
     private async Task GoHome()
     {
-        // Elimina el token guardado (igual que en tu Logout)
+
         await Session.DeleteAsync("authToken");
 
-        // Redirige al home
         Nav.NavigateTo("/", forceLoad: true);
     }
 }

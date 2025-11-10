@@ -4,10 +4,12 @@
 @using LoginManagmentWEB.Services
 @using LoginManagmentWEB.Services.Auth
 @using System.Net.Http.Headers
+@using Microsoft.AspNetCore.Authorization
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 @inject ITokenProvider TokenProvider
 @inject IHttpClientFactory ClientFactory
+
 
 <div class="admin-page">
     <div class="admin-card">

@@ -4,11 +4,13 @@
 @using LoginManagmentWEB.Services
 @using LoginManagmentWEB.Services.Auth
 @using System.Net.Http.Headers
+@using Microsoft.AspNetCore.Authorization
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 @inject ITokenProvider TokenProvider
 @inject IHttpClientFactory ClientFactory
 @inject UserService userService
+
 
 
 <div class="admin-page">

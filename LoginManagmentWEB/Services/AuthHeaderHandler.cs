@@ -15,7 +15,7 @@ using System.Net.Http.Headers;
 
             protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
-                // ⚠️ No llamamos LoadTokenAsync aquí para evitar JS interop durante prerendering
+                
                 var token = _tokenProvider.Token;
 
                 if (!string.IsNullOrEmpty(token))

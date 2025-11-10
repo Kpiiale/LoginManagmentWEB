@@ -35,6 +35,10 @@ builder.Services.AddScoped<ITokenProvider, TokenProvider>();
 builder.Services.AddScoped<UserService>(); 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddTransient<AuthHeaderHandler>();
+builder.Services.AddScoped<CompanyService>();
+builder.Services.AddScoped<EmployeeService>();
+builder.Services.AddScoped<ActivityService>();
+
 
 builder.Services.AddHttpClient<UserService>(client =>
 {
@@ -46,6 +50,13 @@ builder.Services.AddHttpClient("ApiClient", client =>
     client.BaseAddress = new Uri("https://localhost:7162/"); 
 }).AddHttpMessageHandler<AuthHeaderHandler>();
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = "Identity.Application";
+})
+.AddCookie("Identity.Application"); 
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 

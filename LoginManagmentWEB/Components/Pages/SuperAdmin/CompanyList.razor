@@ -1,19 +1,14 @@
-﻿@page "/admin/users"
-@rendermode InteractiveServer 
-@namespace LoginManagmentWEB.Components.Layout
-@using LoginManagmentWEB.Components.Layout
-
+﻿@page "/admin/companies"
+@rendermode InteractiveServer
 @using LoginManagmentWEB.Models
-@inject ProtectedSessionStorage Session
 @using LoginManagmentWEB.Services
 @using LoginManagmentWEB.Services.Auth
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage Session
 @inject ITokenProvider TokenProvider
 @inject IHttpClientFactory ClientFactory
 @inject NavigationManager Nav
-
-@layout AdminLayout
 
 
 <div class="admin-page">
@@ -22,40 +17,44 @@
             <button class="admin-btn logout-btn" @onclick="Logout">Cerrar sesión</button>
         </div>
         <div class="mb-3">
-            <button class="admin-btn" @onclick="CreateUser">Crear Usuario</button>
+            <button class="admin-btn" @onclick="CreateCompany">Crear Compañía</button>
         </div>
 
         @if (!string.IsNullOrEmpty(errorMessage))
         {
             <p class="text-danger">@errorMessage</p>
         }
-        else if (users is null)
+        else if (companies is null)
         {
-            <p>Cargando...</p>
+            <p>Cargando compañías...</p>
         }
-        else if (!users.Any())
+        else if (!companies.Any())
         {
-            <p>No hay usuarios registrados.</p>
+            <p>No hay compañías registradas.</p>
         }
         else
         {
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>Email</th>
-                        <th>Rol</th>
+                        <th>Nombre</th>
+                        <th>Descripcion</th>
+                        <th>Rating</th>
+                        <th>Creado por</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var user in users)
+                    @foreach (var company in companies)
                     {
                         <tr>
-                            <td>@user.Email</td>
-                            <td>@user.Role</td>
+                            <td>@company.Name</td>
+                            <td>@company.Description</td>
+                            <td>@company.AvgRating</td>
+                            <td>@company.CreatedBy</td>
                             <td>
-                                <button class="admin-btn" @onclick="() => EditUser(user.Id)">Editar</button>
-                                <button class="admin-btn" @onclick="() => DeleteUser(user.Id)">Eliminar</button>
+                                <button class="admin-btn" @onclick="() => EditCompany(company.Id)">Editar</button>
+                                <button class="admin-btn" @onclick="() => DeleteCompany(company.Id)">Eliminar</button>
                             </td>
                         </tr>
                     }
@@ -64,8 +63,9 @@
         }
     </div>
 </div>
+
 @code {
-    private List<UserDto>? users;
+    private List<CompanyDto>? companies;
     private string errorMessage = string.Empty;
     private bool _loaded = false;
 
@@ -77,24 +77,24 @@
 
             await TokenProvider.LoadTokenAsync();
             var token = TokenProvider.Token;
-            Console.WriteLine($"Token recuperado en UserList: {token}");
 
             if (string.IsNullOrEmpty(token))
             {
                 Nav.NavigateTo("/unauthorized");
+                return;
             }
 
             var client = ClientFactory.CreateClient();
             client.BaseAddress = new Uri("https://localhost:7162");
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            var userService = new UserService(client);
+            var companyService = new CompanyService(client);
 
             try
             {
-                users = await userService.GetAllAsync();
+                companies = await companyService.GetCompaniesAsync();
             }
-            catch (HttpRequestException )
+            catch (HttpRequestException)
             {
                 errorMessage = "No estás autorizado para ver esta sección.";
                 Nav.NavigateTo("/unauthorized", forceLoad: true);
@@ -103,19 +103,19 @@
             StateHasChanged();
         }
     }
+
     private async Task Logout()
     {
         await Session.DeleteAsync("authToken");
         Nav.NavigateTo("/login", forceLoad: true);
     }
 
+    private void CreateCompany() =>
+        Nav.NavigateTo("/admin/companies/create");
 
-    private void CreateUser() =>
-        Nav.NavigateTo("/admin/users/create");
+    private void EditCompany(int id) =>
+        Nav.NavigateTo($"/admin/companies/edit/{id}");
 
-    private void EditUser(int id) =>
-        Nav.NavigateTo($"/admin/users/edit/{id}");
-
-    private void DeleteUser(int id) =>
-        Nav.NavigateTo($"/admin/users/delete/{id}");
+    private void DeleteCompany(int id) =>
+        Nav.NavigateTo($"/admin/companies/delete/{id}");
 }
